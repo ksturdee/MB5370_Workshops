@@ -79,7 +79,7 @@ assembly-stats amtp4_20x.ctg.fa
 **Table 2**: Output from assembly statistics
 
 | STATISTIC | RESULT | MEANING |
-|------------------------|----------------|---------------------------------|
+|-----------------------|------------------|-------------------------------|
 | Total assembly length | 7,072,581 bp | All contigs together contain \~7.07 Mb of sequence |
 | Number of contigs | 92 | The assembly is split into 92 separate pieces |
 | Average contig length | 76,876 bp | Mean contig size is \~76.9 kb |
@@ -172,7 +172,7 @@ assembly-stats amtp4_20x/assembly.fasta
 **Table 4:** Assembly outputs from the large flye dataset
 
 | STATISTIC | RESULT | MEANING |
-|------------------------|-----------------|-------------------------------|
+|------------------------|------------------|------------------------------|
 | Total assembly length | 7,453,463 bp | All contigs together contain \~7.45 Mb of sequence |
 | Number of contigs | 53 | The assembly is split into 53 separate pieces |
 | Average contig length | 140,631 bp | Mean contig size is \~140.6 kb |
@@ -189,7 +189,9 @@ The 20× Flye assembly is way more contiguous than the standard Flye assembly.
 
 Inspect low coverage flye assembly with Bandage
 
-Assembly quality with QUASTTotal assembly length7,453,463 bpAll contigs together contain \~7.45 Mb of sequenceNumber of contigs53The assembly is split into 53 separate piecesAverage contig length140,631 bpMean contig size is \~140.6 kbLargest contig3,378,256 bpThe longest continuous assembled sequence is \~3.38 MbN501,775,265 bp50% of the assembly is contained in contigs ≥1,775,265 bpN9044,872 bp90% of the assembly is contained in contigs ≥44,872 bpNs0No ambiguous N basesGaps0No gaps represented in the assemblythe 20× Flye assembly is dramatically more contiguous than the standard Flye assembly.
+![flye_small_graph](flye_genome/flye_small_graph.png)
+
+![flye_large_graph](flye_genome/flye_large_graph.png)
 
 Commands run in `quast/`.
 
