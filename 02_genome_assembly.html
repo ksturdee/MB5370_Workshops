@@ -369,26 +369,163 @@ bash chunk.</p>
 <p>Collect a small subset of data for the initial assembly.</p>
 <pre class="bash"><code>cat /pvol/data/amtp4/*_[012].fastq &gt; amtp4.fastq</code></pre>
 <p>Run the assembly (took around ~40 seconds.)</p>
-<pre class="bash"><code># wtdbg2 -x ont -g 5m -t 4 -i amtp4.fastq -fo amtp4
-# wtpoa-cns -t 4 -i amtp4.ctg.lay.gz -fo amtp4.ctg.fa</code></pre>
+<pre class="bash"><code>wtdbg2 -x ont -g 5m -t 4 -i amtp4.fastq -fo amtp4
+wtpoa-cns -t 4 -i amtp4.ctg.lay.gz -fo amtp4.ctg.fa</code></pre>
 <p>Inspect assembly statistics</p>
 <pre class="bash"><code>assembly-stats amtp4.ctg.fa</code></pre>
-<p>Output:</p>
-<pre class="r"><code># stats for amtp4.ctg.fa
-# sum = 3816933, n = 129, ave = 29588.63, largest = 159611
-# N50 = 48075, n = 23
-# N60 = 33615, n = 33
-# N70 = 28879, n = 45
-# N80 = 21464, n = 60
-# N90 = 13023, n = 83
-# N100 = 2697, n = 129
-# N_count = 0
-# Gaps = 0</code></pre>
+<p>The assembly is somewhat contiguous, but likely not nearly
+complete.</p>
+<p><strong>Table 1:</strong> Assembly statistics output</p>
+<table>
+<colgroup>
+<col width="38%" />
+<col width="31%" />
+<col width="29%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>STATISTIC</th>
+<th>RESULT</th>
+<th>MEANING</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Total assembly length</td>
+<td>3,816,933 bp</td>
+<td>All contigs together contain ~3.82 Mb of sequence</td>
+</tr>
+<tr class="even">
+<td>Number of contigs</td>
+<td>129</td>
+<td>The assembly is split into 129 separate pieces</td>
+</tr>
+<tr class="odd">
+<td>Average contig length</td>
+<td>29,589 bp</td>
+<td>Mean contig size is ~29.6 kb</td>
+</tr>
+<tr class="even">
+<td>Largest contig</td>
+<td>159,611 bp</td>
+<td>The longest continuous assembled sequence is ~160 kb</td>
+</tr>
+<tr class="odd">
+<td>N50</td>
+<td>48,075 bp</td>
+<td>50% of the assembly is contained in contigs ≥48,075 bp</td>
+</tr>
+<tr class="even">
+<td>N90</td>
+<td>13,023 bp</td>
+<td>90% is contained in contigs ≥13,023 bp</td>
+</tr>
+<tr class="odd">
+<td>Ns</td>
+<td>0</td>
+<td>No ambiguous <code>N</code> bases</td>
+</tr>
+<tr class="even">
+<td>Gaps</td>
+<td>0</td>
+<td>No gaps represented in the assembly</td>
+</tr>
+<tr class="odd">
+<td>Total assembly length</td>
+<td>3,816,933 bp</td>
+<td>All contigs together contain ~3.82 Mb of sequence</td>
+</tr>
+</tbody>
+</table>
+<p>Run redbean with higher coverage: redo the assembly using a better
+coverage depth (~20x coverage). This took around ~153.263 sec.</p>
+<pre class="bash"><code>cat /pvol/data/amtp4/*.fastq &gt; amtp4_20x.fastq
+wtdbg2 -x ont -g 5m -t 4 -i amtp4_20x.fastq -fo amtp4_20x
+wtpoa-cns -t 4 -i amtp4_20x.ctg.lay.gz -fo amtp4_20x.ctg.fa</code></pre>
+<p>Inspect assembly statistics</p>
+<pre class="bash"><code>assembly-stats amtp4_20x.ctg.fa</code></pre>
+<p><strong>Table 2</strong>: Output from assembly statistics</p>
+<table>
+<colgroup>
+<col width="32%" />
+<col width="21%" />
+<col width="45%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>STATISTIC</th>
+<th>RESULT</th>
+<th>MEANING</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Total assembly length</strong></td>
+<td><strong>7,072,581 bp</strong></td>
+<td>All contigs together contain ~7.07 Mb of sequence</td>
+</tr>
+<tr class="even">
+<td><strong>Number of contigs</strong></td>
+<td><strong>92</strong></td>
+<td>The assembly is split into 92 separate pieces</td>
+</tr>
+<tr class="odd">
+<td><strong>Average contig length</strong></td>
+<td><strong>76,876 bp</strong></td>
+<td>Mean contig size is ~76.9 kb</td>
+</tr>
+<tr class="even">
+<td><strong>Largest contig</strong></td>
+<td><strong>3,344,015 bp</strong></td>
+<td>The longest continuous assembled sequence is ~3.34 Mb</td>
+</tr>
+<tr class="odd">
+<td><strong>N50</strong></td>
+<td><strong>1,764,942 bp</strong></td>
+<td>50% of the assembly is contained in contigs ≥1,764,942 bp</td>
+</tr>
+<tr class="even">
+<td><strong>N90</strong></td>
+<td><strong>27,112 bp</strong></td>
+<td>90% of the assembly is contained in contigs ≥27,112 bp</td>
+</tr>
+<tr class="odd">
+<td><strong>Ns</strong></td>
+<td><strong>0</strong></td>
+<td>No ambiguous <code>N</code> bases</td>
+</tr>
+<tr class="even">
+<td><strong>Gaps</strong></td>
+<td><strong>0</strong></td>
+<td>No gaps represented in the assembly</td>
+</tr>
+<tr class="odd">
+<td><strong>Total assembly length</strong></td>
+<td><strong>7,072,581 bp</strong></td>
+<td>All contigs together contain ~7.07 Mb of sequence</td>
+</tr>
+</tbody>
+</table>
+<p>This assembly is more contiguous, there are less gaps too.</p>
 </div>
 <div id="flye-assembly" class="section level2">
 <h2>Flye assembly</h2>
 <p>Commands run in <code>flye_genome/</code>.</p>
-<pre class="bash"><code></code></pre>
+<p>Redirected to the correct folder:
+<code>cd ~/mb5370-workshops/flye_genome</code></p>
+<p>Run flye on both datasets</p>
+<pre class="bash"><code>ln -s ../redbean/amtp4.fastq .
+ln -s ../redbean/amtp4_20x.fastq .</code></pre>
+<p>Created .sh file to run flye_genome. Pasted in:</p>
+<p><code>#!/bin/bash #SBATCH --time=60 #SBATCH --ntasks=4 --mem=10gb</code></p>
+<p><code>echo &quot;Starting flye in $(pwd) at $(date)&quot;</code></p>
+<p><code>flye --nano-raw amtp4.fastq --out-dir amtp4 --genome-size 5m --threads 4</code></p>
+<p><code>echo &quot;Finished flye in $(pwd) at $(date)&quot;</code></p>
+<p>… and the n ran <code>sbatch run_flye_small.sh</code> in the
+terminal.</p>
+<p>Check my job status:</p>
+<pre class="bash"><code>squeue</code></pre>
+<p>I can look at my job file in the directory:</p>
 </div>
 <div id="assembly-graphs-with-bandage" class="section level2">
 <h2>Assembly graphs with Bandage</h2>

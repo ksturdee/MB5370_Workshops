@@ -80,29 +80,116 @@ assembly-stats amtp4_20x.ctg.fa
 
 | STATISTIC | RESULT | MEANING |
 |------------------------|----------------|---------------------------------|
-| **Total assembly length** | **7,072,581 bp** | All contigs together contain \~7.07 Mb of sequence |
-| **Number of contigs** | **92** | The assembly is split into 92 separate pieces |
-| **Average contig length** | **76,876 bp** | Mean contig size is \~76.9 kb |
-| **Largest contig** | **3,344,015 bp** | The longest continuous assembled sequence is \~3.34 Mb |
-| **N50** | **1,764,942 bp** | 50% of the assembly is contained in contigs ≥1,764,942 bp |
-| **N90** | **27,112 bp** | 90% of the assembly is contained in contigs ≥27,112 bp |
-| **Ns** | **0** | No ambiguous `N` bases |
-| **Gaps** | **0** | No gaps represented in the assembly |
-| **Total assembly length** | **7,072,581 bp** | All contigs together contain \~7.07 Mb of sequence |
+| Total assembly length | 7,072,581 bp | All contigs together contain \~7.07 Mb of sequence |
+| Number of contigs | 92 | The assembly is split into 92 separate pieces |
+| Average contig length | 76,876 bp | Mean contig size is \~76.9 kb |
+| Largest contig | 3,344,015 bp | The longest continuous assembled sequence is \~3.34 Mb |
+| N50 | 1,764,942 bp | 50% of the assembly is contained in contigs ≥1,764,942 bp |
+| N90 | 27,112 bp | 90% of the assembly is contained in contigs ≥27,112 bp |
+| Ns | 0 | No ambiguous `N` bases |
+| Gaps | 0 | No gaps represented in the assembly |
+| Total assembly length | 7,072,581 bp | All contigs together contain \~7.07 Mb of sequence |
 
-This assembly is more contiguous.
+This assembly is more contiguous, there are less gaps too.
 
-Flye assembly
+## Flye assembly
 
 Commands run in `flye_genome/`.
 
-```{bash}
+Redirected to the correct folder: `cd ~/mb5370-workshops/flye_genome`
 
+Run flye on both datasets
+
+```{bash}
+ln -s ../redbean/amtp4.fastq .
+ln -s ../redbean/amtp4_20x.fastq .
 ```
+
+Created .sh file to run flye_genome. Pasted in:
+
+`#!/bin/bash #SBATCH --time=60 #SBATCH --ntasks=4 --mem=10gb`
+
+`echo "Starting flye in $(pwd) at $(date)"`
+
+`flye --nano-raw amtp4.fastq --out-dir amtp4 --genome-size 5m --threads 4`
+
+`echo "Finished flye in $(pwd) at $(date)"`
+
+... and the n ran `sbatch run_flye_small.sh` in the terminal.
+
+Check my job status:
+
+```{bash}
+squeue
+```
+
+I can look at my job file in the directory:
+
+```{bash}
+tail slurm-300.out
+```
+
+This shows the output from the flye command as it is running.
+
+Use the `assembly-stats` program to assess the contiguity and completeness of this assembly.
+
+```{bash}
+assembly-stats amtp4/assembly.fasta
+```
+
+Table 3: Assembly outputs from the small flye dataset
+
+| STATISTIC | RESULT | MEANING |
+|-------------------------------|----------------------|-------------------|
+| Total assembly length | 5,185,224 bp | All contigs together contain \~5.19 Mb of sequence |
+| Number of contigs | 77 | The assembly is split into 77 separate pieces |
+| Average contig length | 67,341 bp | Mean contig size is \~67.3 kb |
+| Largest contig | 368,928 bp | The longest continuous assembled sequence is \~369 kb |
+| N50 | 119,681 bp | 50% of the assembly is contained in contigs ≥119,681 bp |
+| N90 | 31,578 bp | 90% of the assembly is contained in contigs ≥31,578 bp |
+| Ns | 0 | No ambiguous `N` bases |
+| Gaps | 0 | No gaps represented in the assembly |
+| Total assembly length | 5,185,224 bp | All contigs together contain \~5.19 Mb of sequence |
+
+Run the larger flye dataset:
+
+`#!/bin/bash #SBATCH --time=360 #SBATCH --ntasks=4 --mem=10gb`
+
+`echo "Starting flye in $(pwd) at $(date)"`
+
+`flye --nano-raw amtp4_20x.fastq --out-dir amtp4_20x --genome-size 5m --threads 4`
+
+`echo "Finished flye in $(pwd) at $(date)"`
+
+... and then run `sbatch run_flye_large.sh` in the terminal.
+
+Use the `assembly-stats` program to assess the contiguity and completeness of this assembly.
+
+```{bash}
+assembly-stats amtp4_20x/assembly.fasta
+```
+
+**Table 4:** Assembly outputs from the large flye dataset
+
+| STATISTIC | RESULT | MEANING |
+|------------------------|-----------------|-------------------------------|
+| Total assembly length | 7,453,463 bp | All contigs together contain \~7.45 Mb of sequence |
+| Number of contigs | 53 | The assembly is split into 53 separate pieces |
+| Average contig length | 140,631 bp | Mean contig size is \~140.6 kb |
+| Largest contig | 3,378,256 bp | The longest continuous assembled sequence is \~3.38 Mb |
+| N50 | 1,775,265 bp | 50% of the assembly is contained in contigs ≥1,775,265 bp |
+| N90 | 44,872 bp | 90% of the assembly is contained in contigs ≥44,872 bp |
+| Ns | 0 | No ambiguous `N` bases |
+| **Gaps** | **0** | No gaps represented in the assembly |
+| Total assembly length | 7,453,463 bp | All contigs together contain \~7.45 Mb of sequence |
+
+The 20× Flye assembly is way more contiguous than the standard Flye assembly.
 
 ## Assembly graphs with Bandage
 
-## Assembly quality with QUAST
+Inspect low coverage flye assembly with Bandage
+
+Assembly quality with QUASTTotal assembly length7,453,463 bpAll contigs together contain \~7.45 Mb of sequenceNumber of contigs53The assembly is split into 53 separate piecesAverage contig length140,631 bpMean contig size is \~140.6 kbLargest contig3,378,256 bpThe longest continuous assembled sequence is \~3.38 MbN501,775,265 bp50% of the assembly is contained in contigs ≥1,775,265 bpN9044,872 bp90% of the assembly is contained in contigs ≥44,872 bpNs0No ambiguous N basesGaps0No gaps represented in the assemblythe 20× Flye assembly is dramatically more contiguous than the standard Flye assembly.
 
 Commands run in `quast/`.
 
