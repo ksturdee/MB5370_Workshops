@@ -1,6 +1,6 @@
 ---
 title: "Workshop 2: Genome Assembly"
-author: "Your Name"
+author: "Kendra"
 date: "`r Sys.Date()`"
 output: html_document
 ---
@@ -21,9 +21,84 @@ Notes for [Workshop 2](https://mb5370.bioinformatics.guide/workshop2.html). Run 
 
 Commands run in `redbean/`.
 
-## Flye assembly
+Running redbean in the redbean folder:
+
+```{bash}
+cd ~/mb5370-workshops/redbean
+```
+
+Collect a small subset of data for the initial assembly.
+
+```{bash}
+cat /pvol/data/amtp4/*_[012].fastq > amtp4.fastq
+```
+
+Run the assembly (took around \~40 seconds.)
+
+```{bash}
+wtdbg2 -x ont -g 5m -t 4 -i amtp4.fastq -fo amtp4
+wtpoa-cns -t 4 -i amtp4.ctg.lay.gz -fo amtp4.ctg.fa
+```
+
+Inspect assembly statistics
+
+```{bash}
+assembly-stats amtp4.ctg.fa
+```
+
+The assembly is somewhat contiguous, but likely not nearly complete.
+
+**Table 1:** Assembly statistics output
+
+| STATISTIC | RESULT | MEANING |
+|----------------------------|-----------------------|---------------------|
+| Total assembly length | 3,816,933 bp | All contigs together contain \~3.82 Mb of sequence |
+| Number of contigs | 129 | The assembly is split into 129 separate pieces |
+| Average contig length | 29,589 bp | Mean contig size is \~29.6 kb |
+| Largest contig | 159,611 bp | The longest continuous assembled sequence is \~160 kb |
+| N50 | 48,075 bp | 50% of the assembly is contained in contigs ≥48,075 bp |
+| N90 | 13,023 bp | 90% is contained in contigs ≥13,023 bp |
+| Ns | 0 | No ambiguous `N` bases |
+| Gaps | 0 | No gaps represented in the assembly |
+| Total assembly length | 3,816,933 bp | All contigs together contain \~3.82 Mb of sequence |
+
+Run redbean with higher coverage: redo the assembly using a better coverage depth (\~20x coverage). This took around \~153.263 sec.
+
+```{bash}
+cat /pvol/data/amtp4/*.fastq > amtp4_20x.fastq
+wtdbg2 -x ont -g 5m -t 4 -i amtp4_20x.fastq -fo amtp4_20x
+wtpoa-cns -t 4 -i amtp4_20x.ctg.lay.gz -fo amtp4_20x.ctg.fa
+```
+
+Inspect assembly statistics
+
+```{bash}
+assembly-stats amtp4_20x.ctg.fa
+```
+
+**Table 2**: Output from assembly statistics
+
+| STATISTIC | RESULT | MEANING |
+|------------------------|----------------|---------------------------------|
+| **Total assembly length** | **7,072,581 bp** | All contigs together contain \~7.07 Mb of sequence |
+| **Number of contigs** | **92** | The assembly is split into 92 separate pieces |
+| **Average contig length** | **76,876 bp** | Mean contig size is \~76.9 kb |
+| **Largest contig** | **3,344,015 bp** | The longest continuous assembled sequence is \~3.34 Mb |
+| **N50** | **1,764,942 bp** | 50% of the assembly is contained in contigs ≥1,764,942 bp |
+| **N90** | **27,112 bp** | 90% of the assembly is contained in contigs ≥27,112 bp |
+| **Ns** | **0** | No ambiguous `N` bases |
+| **Gaps** | **0** | No gaps represented in the assembly |
+| **Total assembly length** | **7,072,581 bp** | All contigs together contain \~7.07 Mb of sequence |
+
+This assembly
+
+Flye assembly
 
 Commands run in `flye_genome/`.
+
+```{bash}
+
+```
 
 ## Assembly graphs with Bandage
 

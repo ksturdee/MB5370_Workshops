@@ -1,14 +1,13 @@
 ---
 title: "Workshop 1: Introduction to the Command Line"
-author: "Your Name"
+author: "Kendra"
 date: "`r Sys.Date()`"
 output: html_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-# Bash chunks are a record of commands you ran in the Terminal. Knitting shows
-# them but doesn't run them again.
+# Bash chunks are a record of commands you ran in the Terminal. Knitting shows them but doesn't run them again.
 knitr::opts_hooks$set(engine = function(options) {
   if (options$engine == "bash") options$eval <- FALSE
   options
@@ -26,12 +25,111 @@ Replace the text below each heading with your own notes. Copy each command you r
 
 ## Basic unix commands
 
-Notes on `pwd`, `ls`, `cd` and how unix commands are put together.
+Terminal expects commands in R, console expects unix commands. Notes on `pwd`, `ls`, `cd` and how unix commands are put together.
+
+```{bash}
+pwd 
+```
+
+(print working directory) This shows the path within the tree.
+
+```{bash}
+ls
+```
+
+This shows files and directories present in our location.
+
+```{bash}
+ls -l
+```
+
+Shows more information (-1 shows long format for each file/directory)
+
+```{bash}
+ls -lr
+```
+
+This will reverse sort what ls -l shows. -l and r are flags.
+
+```{bash}
+ls -l /usr
+```
+
+Instead of my directory we are now looking inside usr directory
+
+"\~" is my home directory, contains this RStudio project.
+
+```{bash}
+mkdir 
+```
+
+This makes new directory.
+
+To change directory:
+
+```{bash}
+cd ~/mb5370-workshops/command_line
+```
+
+"cd" for change directory, then insert the new directory. \~ is shortcut for home directory.
 
 ## Viewing and searching files
 
 Notes on `cat`, `head`, `grep` and `man`.
 
+```{bash}
+cat 
+```
+
+Take a look at the file using cat
+
+```{bash}
+head
+```
+
+Shows the first 10 lines (useful for large files)
+
+```{bash}
+head -2
+```
+
+Shows first 2 lines
+
+```{bash}
+grep
+```
+
+globally search a regular expression and print.
+
+Finds lines matching specific strings in files. Example: if you want to find the fasta header... use:
+
+```{bash}
+grep '^>' test.fasta
+```
+
+```{bash}
+grep KDRNKKNSAK test.fasta
+```
+
+If you want to find a specific amino acid sequence.
+
+grep has around 50 flags.
+
+-i -\> case insensitive match
+
+-n -\> report line number of matches
+
+-c -\> count all files that contain the pattern
+
+-w -\> match whole words only
+
 ## Sequence file formats
 
-Notes on the fasta and fastq formats.
+The table below contains my notes on the fasta and fastq formats.
+
+**Table 1:** Comparing FASTA and FASTQ formats
+
+| FASTA | FASTQ |
+|----|----|
+| Used for reference data. There are no quality scores so they are assumed to be correct, and they are used for nucleotides as well as protein data. | FASTQ files are most commonly used for "raw" reads from next generation sequencing experiments. Includes quality scores for every base. |
+| The FASTA format consists of 1 or more entries, each of which consists of a header and a sequence. The title is one line, and begins with "\>". | Contains additional information about the reliability of each base (very large files). Line 1 shows the identifier which begins with an "\@". Line 2 shows the sequence, line 3 shows the description and starts with a "+", and line 4 shows quality scores. FASTQ is the standard format used for Illumina short reads, and long reads by Nanopore or PacBio sequencing. |
