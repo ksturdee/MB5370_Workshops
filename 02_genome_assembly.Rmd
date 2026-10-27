@@ -90,7 +90,7 @@ assembly-stats amtp4_20x.ctg.fa
 | **Gaps** | **0** | No gaps represented in the assembly |
 | **Total assembly length** | **7,072,581 bp** | All contigs together contain \~7.07 Mb of sequence |
 
-This assembly
+This assembly is more contiguous.
 
 Flye assembly
 
