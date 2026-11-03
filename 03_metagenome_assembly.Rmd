@@ -1,6 +1,6 @@
 ---
 title: "Workshop 3: Metagenome Assembly"
-author: "Your Name"
+author: "Kendra"
 date: "`r Sys.Date()`"
 output: html_document
 ---
@@ -23,18 +23,250 @@ R chunks in this file run from the top of the repository, so give file paths fro
 
 Reads are linked into `raw_data/`.
 
+```{bash}
+# Start by making a symbolic link to the raw reads file in the raw_data folder.
+cd ~/mb5370-workshops/raw_data
+ln -s /pvol/data/metagenome_assembly/reads_R10_0.5.fastq.gz raw_reads.fastq.gz
+
+# back “up” out of raw_data
+cd ..
+
+# check that the link is correct
+ls -l raw_data
+
+# Read length distribution
+zcat raw_data/raw_reads.fastq.gz | head -n 40000 | bioawk -c fastx '{print $name,length($seq)}' > read_lengths.txt
+```
+
+Visualise read lengths in R in
+
+```{r}
+library(tidyverse)
+
+rl_data <- read_tsv("read_lengths.txt",col_names = c("id","length"), show_col_types = FALSE)
+
+ggplot(rl_data, aes(x=length/1000)) + 
+  geom_histogram(binwidth = 2) +
+  xlab("Read Length Kb") + ylab("Number of Reads")
+```
+
+**Figure 1**: Histogram of read lengths in the mock nanopore sequencing dataset
+
+Calculating read N50 (most reads are between 1 and 50kb in length).
+
+- Step 1: Rank all reads from longest to shortest
+
+- Step 2: Create a new column with the cumulative sum of read lengths (starting from longest read).
+
+- Step 3: Find the read at which the cumulative sum surpasses 50% of the total read volume (ie total sum of all read lengths)
+
+```{r}
+total_len <- sum(rl_data$length)
+
+rl_data |> 
+  arrange(desc(length)) |> 
+  mutate(cumsum = cumsum(length)) |> 
+  filter(cumsum>total_len/2) |> 
+  head(n=1)
+```
+
+Shows that N50 of the individual reads is about 22Kb.
+
 ## Step 2: Assembly
 
 Commands run in `flye_metagenome/`.
+
+Use flye for long-read metagenome data (use slurm job).
+
+```{bash}
+cd ~/mb5370-workshops/flye_metagenome
+```
+
+Create shell script and enter:
+
+```{bash}
+#!/bin/bash
+#SBATCH --time=360
+#SBATCH --ntasks=4 --mem=6gb
+
+echo "Starting flye in $(pwd) at $(date)"
+
+flye --nano-hq ../raw_data/raw_reads.fastq.gz --threads 4 --out-dir mock --meta
+
+echo "Finished flye in $(pwd) at $(date)"
+```
+
+Run shell script:
+
+```{bash}
+sbatch run_flye.sh
+```
+
+Monitor job output:
+
+```{bash}
+tail -f slurm-386.out
+```
+
+#### **Chromosome lengths and GC content in the reference data**
+
+While I wait, I can compare the assembled contigs with reference genomes from the 5 species that comprise our mock community.
+
+Create a new plain text file and add:
+
+```{bash}
+# Bioawk script for calculating gc and printing name,length,GC
+BEGIN {
+    OFS="\t"
+}
+
+{
+    l=length($seq)
+    ngc=gsub("[cgCG]","",$seq)
+    nat=gsub("[taTA]","",$seq)
+    print $name,l,ngc/(ngc+nat)
+}
+```
+
+Look at reference genomes for mock community:
+
+```{bash}
+ls /pvol/data/mg/refs/*.fna
+```
+
+use `cat` to concatenate all the files together and then use a pipe to send their contents to our bioawk program. Run this from the top level of your project, where you saved `gc.awk`
+
+```{bash}
+cd ~/mb5370-workshops
+cat /pvol/data/mg/refs/*.fna | bioawk -c fastx -f gc.awk
+```
 
 ## Step 3: Basic assembly QC
 
 Commands run in `assembly_check/`.
 
+```{bash}
+cd ~/mb5370-workshops/assembly_check
+# Use your gc.awk script to print GC and lengths for the assembly
+cat ../flye_metagenome/mock/assembly.fasta | bioawk -c fastx -f ../gc.awk
+# Run the command again but this time send outputs to a file called assembly.gc.tsv
+cat ../flye_metagenome/mock/assembly.fasta | bioawk -c fastx -f ../gc.awk > assembly.gc.tsv
+```
+
+We have GC content in `assembly.gc.tsv` and coverage depth in the `assembly_info.txt` file produced by `flye`. Let’s read those and join them together using R.
+
+```{r}
+gc <- read_tsv("assembly_check/assembly.gc.tsv",col_names = c("#seq_name","length","GC"))
+info <- read_tsv("flye_metagenome/mock/assembly_info.txt")
+```
+
+```{r}
+# Since both datasets have a #seq_name column we can join them easily as follows:
+gc_info <- info |> 
+  left_join(gc)
+
+gc_info |> 
+  ggplot(aes(x=GC)) + geom_histogram() + ylab("Number of contigs")
+```
+
+**Figure 2**: Histogram of GC content values for assembled contigs in a flye assembly of the mock community dataset.
+
+A histogram by GC content shows several peaks, probably corresponding to major groupings of taxonomically distinct lineages within the data.
+
+```{r}
+gc_info |> 
+  filter(GC<0.8) |> 
+  filter(cov.<25) |> 
+  ggplot(aes(x=GC,y=cov.)) + geom_point(aes(size=length)) + ylab("Coverage depth")
+```
+
+**Figure 3**: Coverage and GC content of assembled contigs in the mock community assembly. Contig lengths are shown through point size.
+
+```{r}
+library(ggrepel)
+gc_info |> 
+  filter(GC<0.8) |> 
+  filter(cov.<25) |> 
+  ggplot(aes(x=GC,y=cov.)) + geom_point(aes(size=length)) + geom_label_repel(aes(label=`#seq_name`))
+```
+
+**Figure 4**: Coverage and GC content of assembled contigs in the mock community assembly. Contig lengths are shown through point size. Only contigs with less than 25x coverage and less than 80% GC content are shown.
+
+#### **Assembly size vs reference size**
+
+```{bash}
+cd ~/mb5370-workshops
+# Firstly lets calculate the total length of our reference sequences. 
+cat /pvol/data/mg/refs/*.fna | bioawk -c fastx -f gc.awk | awk '{sum+=$2}END{print sum}'
+```
+
+Calculate the total length of your assembly using R by taking the sum of the contig lengths column.
+
+```{bash}
+cd ~/mb5370-workshops
+
+cat /pvol/data/mg/refs/*.fna | bioawk -c fastx -f gc.awk | awk '{sum+=$2}END{print sum}'
+```
+
+```{r}
+# total length of the Flye assembly in base pairs (bp).
+total_assembly_length <- sum(gc_info$length)
+
+total_assembly_length
+```
+
 ## Step 4: Binning
 
 Commands run in `metabat/`.
 
+```{bash}
+cd ~/mb5370-workshops/metabat
+# Prepare an input file summarising read depth information for all contigs
+cat ../flye_metagenome/mock/assembly_info.txt  | grep -v '#' | awk '{OFS="\t";print $1,$3}' > depths.txt
+
+cat depths.txt | awk '{print $1}' | xargs samtools faidx ../flye_metagenome/mock/assembly.fasta > assembly_ordered.fasta
+
+# Run metabat
+metabat2 -i assembly_ordered.fasta -a depths.txt --cvExt -o bins/metabat --seed 5
+
+# Inspect
+grep '>' bins/*
+```
+
 ## Step 5: Bin quality with CheckM
 
 Commands run in `checkm/`.
+
+```{bash}
+cd ~/mb5370-workshops/checkm
+# Firstly we prepare inputs for checkM. We copy the bins from metabat into the bins folder inside checkm
+cp ../metabat/bins/metabat.*.fa bins/
+```
+
+Longest is contig_42
+
+```{bash}
+samtools faidx ../flye_metagenome/mock/assembly.fasta contig_42 > bins/contig_39.fa
+```
+
+Create shell file with:
+
+`#!/bin/bash #SBATCH --time=60 #SBATCH --ntasks=4 --mem=40gb`
+
+`echo "Starting checkm in $(pwd) at $(date)"`
+
+`shopt -s expand_aliases alias checkm='apptainer run -B /pvol/:/pvol /pvol/data/sif/checkm.sif checkm'`
+
+`checkm lineage_wf bins out -t 4 -x fa -f checkm_results.txt`
+
+`echo "Finished checkm in $(pwd) at $(date)"`
+
+```{bash}
+sbatch run_checkm.sh
+
+tail -f slurm-441.out
+```
+
+The checkm results:
+
+metabat.7 shows strain heterogeneity (31.25%). It has 99.66% completeness, only 0.62% contamination; lineage is Vibrionaceae. Some duplicate marker genes are likely derived from closely related strains of the same organism rather than entirely different species.

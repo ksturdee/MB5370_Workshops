@@ -51,7 +51,7 @@ The assembly is somewhat contiguous, but likely not nearly complete.
 **Table 1:** Assembly statistics output
 
 | STATISTIC | RESULT | MEANING |
-|----------------------------|-----------------------|---------------------|
+|------------------------|------------------------|------------------------|
 | Total assembly length | 3,816,933 bp | All contigs together contain \~3.82 Mb of sequence |
 | Number of contigs | 129 | The assembly is split into 129 separate pieces |
 | Average contig length | 29,589 bp | Mean contig size is \~29.6 kb |
@@ -79,7 +79,7 @@ assembly-stats amtp4_20x.ctg.fa
 **Table 2**: Output from assembly statistics
 
 | STATISTIC | RESULT | MEANING |
-|-----------------------|------------------|-------------------------------|
+|------------------------|------------------------|------------------------|
 | Total assembly length | 7,072,581 bp | All contigs together contain \~7.07 Mb of sequence |
 | Number of contigs | 92 | The assembly is split into 92 separate pieces |
 | Average contig length | 76,876 bp | Mean contig size is \~76.9 kb |
@@ -140,7 +140,7 @@ assembly-stats amtp4/assembly.fasta
 Table 3: Assembly outputs from the small flye dataset
 
 | STATISTIC | RESULT | MEANING |
-|-------------------------------|----------------------|-------------------|
+|------------------------|------------------------|------------------------|
 | Total assembly length | 5,185,224 bp | All contigs together contain \~5.19 Mb of sequence |
 | Number of contigs | 77 | The assembly is split into 77 separate pieces |
 | Average contig length | 67,341 bp | Mean contig size is \~67.3 kb |
@@ -172,7 +172,7 @@ assembly-stats amtp4_20x/assembly.fasta
 **Table 4:** Assembly outputs from the large flye dataset
 
 | STATISTIC | RESULT | MEANING |
-|------------------------|------------------|------------------------------|
+|------------------------|------------------------|------------------------|
 | Total assembly length | 7,453,463 bp | All contigs together contain \~7.45 Mb of sequence |
 | Number of contigs | 53 | The assembly is split into 53 separate pieces |
 | Average contig length | 140,631 bp | Mean contig size is \~140.6 kb |
@@ -194,6 +194,43 @@ Inspect low coverage flye assembly with Bandage
 ![flye_large_graph](flye_genome/flye_large_graph.png)
 
 Commands run in `quast/`.
+
+Extract to largest contigs:
+
+```{bash}
+cat ../flye_genome/amtp4_20x/assembly.fasta | bioawk -c fastx '{print $name, length($seq)}' | sort -n -k2
+```
+
+```{bash}
+samtools faidx ../flye_genome/amtp4_20x/assembly.fasta contig_3 contig_16 > flye_asm/vibrio.fasta
+```
+
+Two largest were contig_3 1775265 contig_16 3378256.
+
+Repeat process for redbean assembly.
+
+```{bash}
+cat ../redbean/amtp4_20x.ctg.fa | bioawk -c fastx '{print $name, length($seq)}' | sort -n -k2
+samtools faidx ../redbean/amtp4_20x.ctg.fa ctg1 ctg2 > redbean_asm/vibrio.fasta
+```
+
+```{bash}
+samtools faidx ../flye_genome/amtp4_20x/assembly.fasta ctg2 ctg1 > flye_asm/vibrio.fasta
+```
+
+```{bash}
+ln -s ../flye_genome/amtp4_20x.fastq .
+```
+
+```{bash}
+ln -s /pvol/data/amtp4/reference/vibrio .
+```
+
+Run quast
+
+```{bash}
+quast -o quast_vibrio redbean_asm/vibrio.fasta flye_asm/vibrio.fasta -L -t 4 --circos --glimmer -r vibrio/vibrio.fna --features  vibrio/vibrio.gff --nanopore amtp4_20x.fastq
+```
 
 ## Mystery repeat region (optional)
 
